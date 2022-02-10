@@ -1,0 +1,67 @@
+1. Find all the information about each products
+
+const product = await db.collection('product').find().toArray();
+
+2. Find the product price which are between 400 to 800
+
+const product = await db.collection('product').find(
+      {
+        $and:[{product_price:{ $gte:400}},{product_price:{ $lte:800}}]     
+      }
+    ).toArray();
+	
+3. Find the product price which are not between 400 to 600
+
+const product = await db.collection('product').find(
+      {
+        $or:[{product_price:{ $lte:400}},{product_price:{ $gte:600}}]     
+      }
+    ).toArray();
+	
+4. List the four product which are grater than 500 in price 
+const product = await db.collection('product').find(
+      {
+        product_price:{$gt:500}      
+      }     
+    ).limit(4).toArray();
+	
+5. Find the product name and product material of each products
+
+const product = await db.collection('product').aggregate([{
+      $project:
+      {
+        _id:0,
+        product_name:1,
+        product_material:1
+      }
+    }]).toArray();
+
+6. Find the product with a row id of 10
+const product = await db.collection('product').find({id:"10"}).toArray();    
+	
+7. Find all products which contain the value of soft in product material 
+const product = await db.collection('product').find({product_material:"Soft"}).toArray();
+
+8. Find products which contain product color indigo  and product price 492.00
+const product = await db.collection('product').find(
+      {
+        $and:[
+          {
+            product_color:"indigo"
+          },
+          {
+            product_price:492
+          }
+        ]
+      }
+    ).toArray();
+
+9. Delete the products which product price value are same
+
+const product = await db.collection('product').aggregate([
+      {"$group":{"_id":"$product_price","count": { "$sum": 1 },"doc":{"$last":"$$ROOT"}}},
+      {"$match": {"count" : {"$gt": 1} }},
+      {"$replaceRoot":{"newRoot":"$doc"}}      
+  ]).forEach(async (e)=>{
+    await db.collection('product').deleteOne({id:e.id})
+  })
